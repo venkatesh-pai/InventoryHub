@@ -1,0 +1,56 @@
+﻿@page "/fetchproducts"
+
+<h3>Product List</h3>
+
+<ul>
+    @if (products != null)
+    {
+        foreach (var product in products)
+        {
+            <li>@product.Name - $@product.Price</li>
+        }
+    }
+    else if (errorMessage != null)
+    {
+        <li>@errorMessage</li>
+    }
+    else
+    {
+        <li>Loading...</li>
+    }
+</ul>
+
+@code {
+    private Product[]? products;
+    private string? errorMessage;
+
+    [Inject]
+    private HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            products = await Http.GetFromJsonAsync<Product[]>("http://localhost:5003/api/products");
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = "Failed to load products. Please try again later.";
+            Console.Error.WriteLine($"Error fetching products: {ex.Message}");
+        }
+    }
+
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Price { get; set; }
+        public int Stock { get; set; }
+        public Category Category { get; set; }
+    }
+    public class Category
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
